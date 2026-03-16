@@ -355,9 +355,9 @@ import { getStorage, ref, uploadString, getDownloadURL, deleteObject }
    ════════════════════════════════════════════════════════════ */
 const HARDCODED_CONFIG = {
   apiKey:        'GANTI',
-  authDomain:    'privatekeep-95399.firebaseapp.com',
-  projectId:     'privatekeep-95399',
-  storageBucket: 'privatekeep-95399.firebasestorage.app',
+  authDomain:    'GANTI',
+  projectId:     'GANTI',
+  storageBucket: 'GANTI',
   appId:         'GANTI'
 };
 
@@ -647,14 +647,19 @@ window.openNote = function(id) {
   document.getElementById('modal').style.background=note.color||'#fffdf7';
   document.querySelectorAll('#modalColorPicker .color-dot').forEach(d=>d.classList.toggle('selected',d.dataset.color===note.color));
   document.getElementById('modalOverlay').classList.add('open');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    switchTab('note');
-    autoGrow(document.getElementById('ta-note'));
-    scrollPanelsTop();
-    document.getElementById('ta-note').focus();
-    ['kyp','resume'].forEach(k=>autoGrow(document.getElementById('ta-'+k)));
-    scrollPanelsTop();
-  }));
+  let isFirstOpen = !document.getElementById('modal')._hasOpened;
+  document.getElementById('modal')._hasOpened = true;
+  const delay = isFirstOpen ? 120 : 0;
+  setTimeout(() => {
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      switchTab('note');
+      autoGrow(document.getElementById('ta-note'));
+      scrollPanelsTop();
+      document.getElementById('ta-note').focus();
+      ['kyp','resume'].forEach(k=>autoGrow(document.getElementById('ta-'+k)));
+      scrollPanelsTop();
+    }));
+  }, delay);
   function autosave(){
     note.title =document.getElementById('modalTitle').value;
     note.body  =document.getElementById('ta-note').value;
@@ -788,7 +793,9 @@ function hasImages(n) { return n.images && n.images.length>0; }
 function renderNotes(query=''){
   const q=query.toLowerCase();
   const filtered=notes.filter(n=>(n.title+' '+n.body+' '+(n.kyp||'')+' '+(n.resume||'')).toLowerCase().includes(q));
-  const pinned=filtered.filter(n=>n.pinned), unpinned=filtered.filter(n=>!n.pinned);
+  /* Pinned always on top, each group sorted by newest first */
+  const pinned  =filtered.filter(n=>n.pinned).sort((a,b)=>b.id-a.id);
+  const unpinned=filtered.filter(n=>!n.pinned).sort((a,b)=>b.id-a.id);
   document.getElementById('pinnedSection').style.display=pinned.length?'block':'none';
   document.getElementById('pinnedGrid').innerHTML=pinned.map(cardHTML).join('');
   document.getElementById('notesGrid').innerHTML=unpinned.map(cardHTML).join('');
