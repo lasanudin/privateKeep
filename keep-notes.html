@@ -214,11 +214,11 @@
     <button class="btn-setup" onclick="saveConfig()">Simpan &amp; Mulai</button>
   </div>
 
-  <button class="btn-google" id="btnGoogle" style="display:none" onclick="signInGoogle()">
+  <button class="btn-google" id="btnGoogle" style="display:none">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
     Masuk dengan Google
   </button>
-  <button class="btn-skip" onclick="skipCloud()">Lanjutkan tanpa cloud (hanya lokal)</button>
+  <button class="btn-skip" id="btnSkip">Lanjutkan tanpa cloud (hanya lokal)</button>
 </div>
 
 <!-- HEADER -->
@@ -237,8 +237,8 @@
       <span class="sync-label" id="syncLabel">Lokal</span>
     </div>
     <div class="view-toggle">
-      <button class="view-btn active" id="gridBtn" onclick="setView('grid')">⊞</button>
-      <button class="view-btn"        id="listBtn" onclick="setView('list')">☰</button>
+      <button class="view-btn active" id="gridBtn">⊞</button>
+      <button class="view-btn"        id="listBtn">☰</button>
     </div>
   </div>
 </header>
@@ -256,7 +256,7 @@
         <div class="color-dot" data-color="#fce7f3" style="background:#fce7f3"></div>
         <div class="color-dot" data-color="#ffedd5" style="background:#ffedd5"></div>
       </div>
-      <button class="btn-save" onclick="saveNote()">Simpan</button>
+      <button class="btn-save" id="btnSaveNote">Simpan</button>
     </div>
   </div>
 
@@ -276,16 +276,16 @@
 </main>
 
 <!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+<div class="modal-overlay" id="modalOverlay">
   <div class="modal" id="modal">
     <div class="modal-header">
       <input type="text" class="modal-title-input" id="modalTitle" placeholder="Judul / Nama Pasien">
     </div>
     <div class="modal-tabs">
-      <button class="tab-btn tab-note active" onclick="switchTab('note')">📝 Catatan</button>
-      <button class="tab-btn tab-kyp"         onclick="switchTab('kyp')">👤 KYP</button>
-      <button class="tab-btn tab-resume"       onclick="switchTab('resume')">📋 Resume</button>
-      <button class="tab-btn tab-foto"         onclick="switchTab('foto')">🖼️ Foto</button>
+      <button class="tab-btn tab-note active" id="tbtn-note">📝 Catatan</button>
+      <button class="tab-btn tab-kyp"         id="tbtn-kyp">👤 KYP</button>
+      <button class="tab-btn tab-resume"       id="tbtn-resume">📋 Resume</button>
+      <button class="tab-btn tab-foto"         id="tbtn-foto">🖼️ Foto</button>
     </div>
     <div class="modal-panels" id="modalPanels">
       <div class="tab-panel active" id="panel-note">
@@ -299,10 +299,10 @@
       </div>
       <div class="tab-panel" id="panel-foto">
         <div class="foto-upload-row">
-          <button class="foto-btn" onclick="document.getElementById('inputFile').click()">
+          <button class="foto-btn" id="btnFromFile">
             <span class="icon">📁</span><span>Dari File</span>
           </button>
-          <button class="foto-btn" onclick="document.getElementById('inputCamera').click()">
+          <button class="foto-btn" id="btnFromCamera">
             <span class="icon">📷</span><span>Dari Kamera</span>
           </button>
         </div>
@@ -320,7 +320,7 @@
         <div class="color-dot" data-color="#fce7f3" style="background:#fce7f3"></div>
         <div class="color-dot" data-color="#ffedd5" style="background:#ffedd5"></div>
       </div>
-      <button class="btn-close" onclick="closeModal()">✕ Tutup</button>
+      <button class="btn-close" id="btnModalClose">✕ Tutup</button>
     </div>
   </div>
 </div>
@@ -328,11 +328,11 @@
 <input type="file" id="inputFile"   accept="image/*" multiple             onchange="handleImages(this.files)">
 <input type="file" id="inputCamera" accept="image/*" capture="environment" onchange="handleImages(this.files)">
 
-<div class="lightbox" id="lightbox" onclick="lightboxBgClick(event)">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)">&#8592;</button>
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="btnLbClose">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="btnLbPrev">&#8592;</button>
   <img id="lightboxImg" src="" alt="">
-  <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1)">&#8594;</button>
+  <button class="lightbox-nav lightbox-next" id="btnLbNext">&#8594;</button>
   <div class="lightbox-counter" id="lightboxCounter"></div>
 </div>
 
@@ -604,6 +604,13 @@ function switchTab(tab) {
   if(tab==='foto') { renderFotoGrid(); }
   else { const ta=document.getElementById('ta-'+tab); if(ta) setTimeout(()=>{autoGrow(ta);scrollPanelsTop();},0); }
 }
+window.switchTab = switchTab;
+
+/* Wire tab buttons */
+['note','kyp','resume','foto'].forEach(tab => {
+  const btn = document.getElementById('tbtn-'+tab);
+  if(btn) btn.addEventListener('click', () => switchTab(tab));
+});
 
 /* ══ NOTES CRUD ══ */
 window.saveNote = function() {
@@ -860,6 +867,38 @@ document.addEventListener('click',e=>{
     }
   }
 });
+
+/* ══ WIRE ALL BUTTONS ══ */
+(function wireButtons(){
+  /* Splash */
+  document.getElementById('btnGoogle').addEventListener('click', signInGoogle);
+  document.getElementById('btnSkip').addEventListener('click', skipCloud);
+
+  /* Header */
+  document.getElementById('gridBtn').addEventListener('click', () => window.setView('grid'));
+  document.getElementById('listBtn').addEventListener('click', () => window.setView('list'));
+
+  /* Create note */
+  document.getElementById('btnSaveNote').addEventListener('click', window.saveNote);
+
+  /* Modal */
+  document.getElementById('btnModalClose').addEventListener('click', window.closeModal);
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if(e.target === document.getElementById('modalOverlay')) window.closeModal();
+  });
+
+  /* Foto upload */
+  document.getElementById('btnFromFile').addEventListener('click', () => document.getElementById('inputFile').click());
+  document.getElementById('btnFromCamera').addEventListener('click', () => document.getElementById('inputCamera').click());
+
+  /* Lightbox */
+  document.getElementById('btnLbClose').addEventListener('click', window.closeLightbox);
+  document.getElementById('btnLbPrev').addEventListener('click', () => window.lightboxNav(-1));
+  document.getElementById('btnLbNext').addEventListener('click', () => window.lightboxNav(1));
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if(e.target === document.getElementById('lightbox')) window.closeLightbox();
+  });
+})();
 
 /* ══ BOOT ══ */
 (function boot(){
